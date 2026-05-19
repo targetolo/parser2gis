@@ -74,38 +74,25 @@ async def parse(req: ParseRequest):
     '--parser.gc-pages-interval=3',
 ]
 
-    runner_code = "import sys; sys.argv = " + json.dumps(args) + "; from parser_2gis.main import main; main()"
+    runner_code = """
+import sys, time
+import parser_2gis.parser.main as _pm
 
-    env = dict(os.environ)
-    env["PYTHONUNBUFFERED"] = "1"
+# Patch _get_available_pages to wait for pagination to appear
+_orig_get_available_pages = _pm.MainParser._get_available_pages
+def _patched_get_available_pages(self):
+    for _ in range(10):
+        pages = _orig_get_available_pages(self)
+        if pages:
+            return pages
+        time.sleep(1.5)
+    return {}
+_pm.MainParser._get_available_pages = _patched_get_available_pages
 
-    try:
-        proc = await asyncio.create_subprocess_exec(
-            sys.executable, "-c", runner_code,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            env=env,
-        )
-        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=6000)
-    except asyncio.TimeoutError:
-        raise HTTPException(status_code=504, detail="Таймаут — уменьши лимит записей")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-    stderr_text = stderr.decode("utf-8", errors="replace")
-    stdout_text = stdout.decode("utf-8", errors="replace")
-
-    if not output_path.exists():
-        raise HTTPException(status_code=500, detail=f"Ошибка парсера: {stderr_text[-1000:]}")
-
-    file_size = output_path.stat().st_size
-    if file_size < 500:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Пустой файл. STDERR: {stderr_text[-1500:]} | STDOUT: {stdout_text[-500:]}"
-        )
-
-    return {"job_id": job_id, "format": req.format, "size": file_size, "stderr": stderr_text[-2000:], "stdout": stdout_text[-1000:]}
+sys.argv = """ + json.dumps(args) + """
+from parser_2gis.main import main
+main()
+"""
 
 @app.get("/download/{job_id}/{fmt}")
 async def download(job_id: str, fmt: str):
