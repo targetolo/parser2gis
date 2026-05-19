@@ -85,7 +85,7 @@ async def parse(req: ParseRequest):
             stderr=asyncio.subprocess.PIPE,
             env=env,
         )
-        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=600)
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=6000)
     except asyncio.TimeoutError:
         raise HTTPException(status_code=504, detail="Таймаут — уменьши лимит записей")
     except Exception as e:
