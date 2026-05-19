@@ -105,7 +105,7 @@ async def parse(req: ParseRequest):
             detail=f"Пустой файл. STDERR: {stderr_text[-1500:]} | STDOUT: {stdout_text[-500:]}"
         )
 
-    return {"job_id": job_id, "format": req.format, "size": file_size}
+    return {"job_id": job_id, "format": req.format, "size": file_size, "stderr": stderr_text[-2000:], "stdout": stdout_text[-1000:]}
 
 @app.get("/download/{job_id}/{fmt}")
 async def download(job_id: str, fmt: str):
