@@ -76,7 +76,7 @@ async def parse(req: ParseRequest):
 
     runner_code = (
         "import sys, time\n"
-        "import parser_2gis.parser.main as _pm\n"
+        "from parser_2gis.parser import main as _pm\n"
         "_orig = _pm.MainParser._get_available_pages\n"
         "def _patched(self):\n"
         "    for _ in range(10):\n"
