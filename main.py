@@ -76,8 +76,8 @@ async def parse(req: ParseRequest):
 
     runner_code = (
         "import sys, time\n"
-        "from parser_2gis.parser import main as _pm\n"
-        "_orig = _pm.MainParser._get_available_pages\n"
+        "from parser_2gis.parser.main import MainParser as _MP\n"
+        "_orig = _MP._get_available_pages\n"
         "def _patched(self):\n"
         "    for _ in range(10):\n"
         "        pages = _orig(self)\n"
@@ -85,7 +85,7 @@ async def parse(req: ParseRequest):
         "            return pages\n"
         "        time.sleep(1.5)\n"
         "    return {}\n"
-        "_pm.MainParser._get_available_pages = _patched\n"
+        "_MP._get_available_pages = _patched\n"
         "sys.argv = " + json.dumps(args) + "\n"
         "from parser_2gis.main import main\n"
         "main()\n"
