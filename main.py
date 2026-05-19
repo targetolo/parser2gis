@@ -31,6 +31,25 @@ async def root():
     with open("index.html", "r", encoding="utf-8") as f:
         return f.read()
 
+@app.get("/debug")
+async def debug():
+    import shutil, subprocess
+    chromium = shutil.which("chromium") or shutil.which("chromium-browser") or shutil.which("google-chrome")
+    try:
+        ver = subprocess.check_output([chromium, "--version"], stderr=subprocess.STDOUT).decode() if chromium else "not found"
+    except Exception as e:
+        ver = str(e)
+    
+    from parser_2gis.chrome.utils import locate_chrome_path
+    located = locate_chrome_path()
+    
+    return {
+        "which_chromium": chromium,
+        "version": ver,
+        "located_by_parser": located,
+        "env_chromium_path": os.environ.get("CHROMIUM_PATH"),
+    }
+
 @app.post("/parse")
 async def parse(req: ParseRequest):
     if not req.url.startswith("https://2gis.ru"):
