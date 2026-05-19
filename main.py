@@ -74,21 +74,11 @@ async def parse(req: ParseRequest):
         '--parser.gc-pages-interval=3',
     ]
 
-    runner_code = (
-        "import sys, time\n"
-        "from parser_2gis.parser.main import MainParser as _MP\n"
-        "_orig = _MP._get_available_pages\n"
-        "def _patched(self):\n"
-        "    for _ in range(10):\n"
-        "        pages = _orig(self)\n"
-        "        if pages:\n"
-        "            return pages\n"
-        "        time.sleep(1.5)\n"
-        "    return {}\n"
-        "_MP._get_available_pages = _patched\n"
-        "sys.argv = " + json.dumps(args) + "\n"
-        "from parser_2gis.main import main\n"
-        "main()\n"
+     runner_code = (
+        "import sys, parser_2gis.parser as p, os\n"
+        "import pkgutil\n"
+        "print([m.name for m in pkgutil.iter_modules(p.__path__)])\n"
+        "print(p.__file__)\n"
     )
 
     env = dict(os.environ)
@@ -120,7 +110,7 @@ async def parse(req: ParseRequest):
             detail=f"Пустой файл. STDERR: {stderr_text[-1500:]} | STDOUT: {stdout_text[-500:]}"
         )
 
-    return {"job_id": job_id, "format": req.format, "size": file_size}
+    return {"job_id": "debug", "format": req.format, "size": 0, "stderr": stderr_text, "stdout": stdout_text}
 
 @app.get("/download/{job_id}/{fmt}")
 async def download(job_id: str, fmt: str):
