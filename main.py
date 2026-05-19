@@ -60,20 +60,19 @@ async def parse(req: ParseRequest):
     output_path = RESULTS_DIR / f"{job_id}.{req.format}"
 
     args = [
-        'parser-2gis',
-        '-i', req.url,
-        '-o', str(output_path),
-        '-f', req.format,
-        f'--parser.max-records={req.max_records}',
-        '--chrome.binary_path=/usr/bin/chromium',
-        '--chrome.headless=yes',
-        #'--chrome.silent-browser=yes',
-        '--chrome.disable-images=yes',
-        '--parser.delay_between_clicks=1500',
-        '--parser.skip-404-response=yes',
-        '--parser.gc-pages-interval=5',
-        '--parser.use-gc=yes',
-    ]
+    'parser-2gis',
+    '-i', req.url,
+    '-o', str(output_path),
+    '-f', req.format,
+    f'--parser.max-records={req.max_records}',
+    '--chrome.binary_path=/usr/bin/chromium',
+    '--chrome.headless=yes',
+    '--chrome.disable-images=yes',
+    '--parser.delay_between_clicks=1500',
+    '--parser.skip-404-response=yes',
+    '--parser.use-gc=yes',
+    '--parser.gc-pages-interval=3',
+]
 
     runner_code = "import sys; sys.argv = " + json.dumps(args) + "; from parser_2gis.main import main; main()"
 
