@@ -75,10 +75,11 @@ async def parse(req: ParseRequest):
     ]
 
      runner_code = (
-        "import sys, parser_2gis.parser as p, os\n"
-        "import pkgutil\n"
-        "print([m.name for m in pkgutil.iter_modules(p.__path__)])\n"
-        "print(p.__file__)\n"
+        "import sys\n"
+        "sys.argv = " + json.dumps(args) + "\n"
+        "import patch\n"
+        "from parser_2gis.main import main\n"
+        "main()\n"
     )
 
     env = dict(os.environ)
